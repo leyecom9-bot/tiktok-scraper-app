@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results - TikTok Trend Scraper</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: #09090b;
+      background-image: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(252,172,209,0.12) 0%, transparent 65%);
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .nav-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .nav-item {
+      padding: 7px 18px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #71717a;
+      text-decoration: none;
+      transition: background 0.25s ease, color 0.25s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      background: rgba(252,172,209,0.14);
+      color: #fcacd1;
+    }
+    .nav-item:not(.active):hover {
+      color: #a1a1aa;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .card, .glass-card {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    .video-card {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .video-card:hover {
+      border-color: rgba(252,172,209,0.25);
+      box-shadow: 0 4px 24px rgba(252,172,209,0.08);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary, .glow-button {
+      background: linear-gradient(135deg, #fcacd1 0%, #c084fc 100%);
+      color: #09090b;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(252,172,209,0.25);
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-primary:hover, .glow-button:hover {
+      box-shadow: 0 0 32px rgba(252,172,209,0.45);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active, .glow-button:active { transform: translateY(0); }
+    .glow-button:disabled {
+      background: rgba(255,255,255,0.08);
+      color: #52525b;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ghost, .back-btn, .bookmark-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #a1a1aa;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost:hover, .back-btn:hover, .bookmark-btn:hover {
+      background: rgba(255,255,255,0.09);
+      color: #e4e4e7;
+    }
+    .bookmark-btn[data-bookmarked="true"] {
+      background: rgba(252,172,209,0.12);
+      border-color: rgba(252,172,209,0.25);
+      color: #fcacd1;
+    }
+
+    .export-btn, .analyze-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: #d4d4d8;
+      transition: all 0.2s ease;
+    }
+    .export-btn:hover, .analyze-btn:hover {
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+    }
+
+    .transcript-btn {
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.22);
+      color: #c4b5fd;
+      transition: all 0.2s ease;
+    }
+    .transcript-btn:hover {
+      background: rgba(167,139,250,0.20);
+      color: #ddd6fe;
+    }
+
+    .generate-brief-btn {
+      background: rgba(147,197,253,0.12);
+      border: 1px solid rgba(147,197,253,0.22);
+      color: #93c5fd;
+      transition: all 0.2s ease;
+    }
+    .generate-brief-btn:hover {
+      background: rgba(147,197,253,0.20);
+      color: #bae6fd;
+    }
+
+    .analyze-btn:disabled, .transcript-btn:disabled, .generate-brief-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .section-heading {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c4b5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: rgba(252,172,209,0.45);
+      box-shadow: 0 0 0 3px rgba(252,172,209,0.10);
+      outline: none;
+    }
+
+    .hook-badge {
+      background: rgba(167,139,250,0.13);
+      border: 1px solid rgba(167,139,250,0.22);
+      color: #c4b5fd;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .stat-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #a1a1aa;
+    }
+
+    .analysis-label { color: #fcacd1; font-weight: 600; }
+
+    .modal-overlay {
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+    .modal-animate { animation: modalIn 0.2s ease forwards; }
+    .fade-in-delay-1 { animation-delay: 0.08s; opacity: 0; }
+    .fade-in-delay-2 { animation-delay: 0.16s; opacity: 0; }
+    .fade-in-delay-3 { animation-delay: 0.24s; opacity: 0; }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2px solid rgba(252,172,209,0.2);
+      border-top-color: #fcacd1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    select option { background: #18181b; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <div class="max-w-6xl mx-auto px-6 pt-8 pb-0">
+    <nav class="flex justify-center mb-7">
+      <div class="nav-toggle">
+        <a href="/" class="nav-item active">Home</a>
+        <a href="/briefs" class="nav-item">Briefs</a>
+        <a href="/settings" class="nav-item">Settings</a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="max-w-6xl mx-auto px-6 py-0 pb-10">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center gap-4">
+        <a href="/" class="back-btn px-3.5 py-2 rounded-md flex items-center gap-2 text-sm font-medium">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back
+        </a>
+        <div>
+          <h1 id="pageTitle" class="text-xl font-bold">Loading...</h1>
+          <p id="pageSubtitle" class="text-zinc-500 text-xs mt-0.5"></p>
+        </div>
+      </div>
+      <button id="exportBtn" class="export-btn px-4 py-2.5 rounded-md text-sm font-semibold flex items-center gap-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Stats Summary -->
+    <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7"></div>
+
+    <!-- Video Grid -->
+    <div id="videos" class="grid md:grid-cols-2 gap-4"></div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-20">
+      <div class="spinner mx-auto mb-4"></div>
+      <p class="text-zinc-600 text-sm">Loading results...</p>
+    </div>
+
+  </div>
+
+  <!-- Video Detail Modal -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+    <div class="absolute inset-4 md:inset-12 lg:inset-16 flex items-center justify-center">
+      <div id="modalContent" class="modal-content modal-animate rounded-xl p-7 max-w-4xl w-full max-h-full overflow-y-auto relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Brief Modal -->
+  <div id="briefModal" class="fixed inset-0 z-[60] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeBriefModal()"></div>
+    <div class="absolute inset-4 md:inset-20 flex items-center justify-center">
+      <div class="modal-content modal-animate rounded-xl p-7 max-w-lg w-full relative">
+        <button onclick="closeBriefModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <h2 class="text-lg font-semibold mb-5">Generate Creative Brief</h2>
+        <div id="briefModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const jobId = window.location.pathname.split('/').pop();
+    let videosData = [];
+
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function formatDate(isoString) {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function formatAnalysis(text) {
+      if (!text) return '';
+      return text
+        .replace(/Visual Hook:/g, '<span class="analysis-label">Visual Hook:</span>')
+        .replace(/Undeniable Proof:/g, '<br><br><span class="analysis-label">Undeniable Proof:</span>')
+        .replace(/Theme:/g, '<br><br><span class="analysis-label">Theme:</span>')
+        .replace(/Funnel Stage:/g, '<br><br><span class="analysis-label">Funnel Stage:</span>');
+    }
+
+    function formatCommentAnalysis(jsonStr) {
+      if (!jsonStr) return '';
+      try {
+        const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+        return `
+          <div class="mb-3">
+            <span class="analysis-label">Common Questions:</span>
+            <p class="mt-1 text-zinc-400 text-sm">${data.commonQuestions || 'No questions identified'}</p>
+          </div>
+          <div>
+            <span class="analysis-label">Key Insights:</span>
+            <p class="mt-1 text-zinc-400 text-sm">${data.keyInsights || 'No insights available'}</p>
+          </div>
+        `;
+      } catch (e) {
+        return '<span class="text-zinc-600 text-sm">Comment analysis unavailable</span>';
+      }
+    }
+
+    function openModal(videoId) {
+      const video = videosData.find(v => v.id === videoId);
+      if (!video) return;
+
+      const tiktokUrl = video.video_url || `https://www.tiktok.com/@${(video.author || '').replace('@', '')}/video/${video.video_id}`;
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="flex flex-col md:flex-row gap-7">
+          <div class="flex-shrink-0">
+            <a href="${tiktokUrl}" target="_blank" rel="noopener noreferrer" class="block">
+              <div class="w-44 h-64 rounded-lg bg-zinc-900 overflow-hidden relative group mx-auto">
+                <img src="${video.thumbnail_url}" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span class="text-xs font-medium bg-white/20 px-3 py-1.5 rounded-md">Open TikTok</span>
+                </div>
+              </div>
+            </a>
+            <a href="${tiktokUrl}" target="_blank" rel="noopener noreferrer" class="block mt-3 text-center text-[#fcacd1] hover:underline text-xs">
+              View on TikTok →
+            </a>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-lg font-bold text-[#fcacd1]">${video.author}</span>
+              ${video.published_at ? `<span class="text-zinc-600 text-xs">${formatDate(video.published_at)}</span>` : ''}
+              ${video.hook_type ? `<span class="hook-badge text-xs px-2 py-0.5 rounded-md">${video.hook_type}</span>` : ''}
+            </div>
+
+            <p class="text-zinc-400 text-sm mb-5 leading-relaxed">${video.description}</p>
+
+            <div class="grid grid-cols-2 gap-2 mb-5">
+              <div class="rounded-md p-2.5" style="background:rgba(147,197,253,0.07);border:1px solid rgba(147,197,253,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <span class="text-[#93c5fd] text-xs">Views</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.views)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(252,172,209,0.07);border:1px solid rgba(252,172,209,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fcacd1" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                  <span class="text-[#fcacd1] text-xs">Likes</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.likes)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span class="text-[#c4b5fd] text-xs">Comments</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.comments)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(134,239,172,0.07);border:1px solid rgba(134,239,172,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  <span class="text-[#86efac] text-xs">Shares</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.shares)}</div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-5">
+              <button
+                onclick="toggleBookmark(${video.id}, this)"
+                class="bookmark-btn px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-1.5"
+                data-bookmarked="${video.bookmarked ? 'true' : 'false'}"
+              >
+                ${video.bookmarked ? 'Bookmarked' : 'Bookmark'}
+              </button>
+              <button
+                onclick="viewTranscript(${video.id}, this)"
+                class="transcript-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                ${video.transcript ? 'data-loaded="true"' : ''}
+              >
+                ${video.transcript ? 'View Transcript' : 'Get Transcript'}
+              </button>
+              ${!video.ai_analysis ? `
+                <button
+                  onclick="analyzeVideoModal(${video.id}, this)"
+                  class="analyze-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                >
+                  Analyze Now
+                </button>
+              ` : `
+                <button
+                  onclick="openGenerateBriefModal(${video.id})"
+                  class="generate-brief-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                >
+                  Generate Brief
+                </button>
+              `}
+            </div>
+
+            <div id="transcriptSection" class="border-t border-white/6 pt-5 ${video.transcript ? '' : 'hidden'}">
+              <h3 class="section-heading mb-3">Transcript</h3>
+              <div id="transcriptContent" class="text-zinc-400 text-sm leading-relaxed p-4 rounded-lg max-h-40 overflow-y-auto" style="background:rgba(252,172,209,0.05);border:1px solid rgba(252,172,209,0.10);">
+                ${video.transcript || '<span class="text-zinc-600">Loading...</span>'}
+              </div>
+            </div>
+
+            ${video.ai_analysis ? `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">Video Analysis</h3>
+                <div id="modalAnalysis" class="text-zinc-400 text-sm leading-relaxed">${formatAnalysis(video.ai_analysis)}</div>
+              </div>
+              ${video.comment_analysis ? `
+                <div class="border-t border-white/6 pt-5 mt-5">
+                  <h3 class="section-heading mb-3">Comment Insights</h3>
+                  <div class="text-zinc-400 text-sm leading-relaxed">${formatCommentAnalysis(video.comment_analysis)}</div>
+                </div>
+              ` : ''}
+            ` : `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">AI Analysis</h3>
+                <div id="modalAnalysis" class="text-zinc-600 text-sm">Click "Analyze Now" to get video and comment insights</div>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    async function loadResults() {
+      try {
+        const res = await fetch(`/api/job/${jobId}`);
+        const data = await res.json();
+
+        if (!data.job) {
+          document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Job not found</p>';
+          return;
+        }
+
+        videosData = data.videos;
+
+        document.getElementById('pageTitle').textContent = `"${data.job.keyword}"`;
+        document.getElementById('pageSubtitle').textContent = `${data.videos.length} videos · ${data.job.date_range ? 'Last ' + data.job.date_range + ' days' : 'All Time'}`;
+
+        const totalViews = data.videos.reduce((sum, v) => sum + v.views, 0);
+        const totalLikes = data.videos.reduce((sum, v) => sum + v.likes, 0);
+        const totalComments = data.videos.reduce((sum, v) => sum + v.comments, 0);
+        const totalShares = data.videos.reduce((sum, v) => sum + v.shares, 0);
+
+        document.getElementById('stats').innerHTML = `
+          <div class="rounded-lg p-4 fade-in" style="background:rgba(147,197,253,0.07);border:1px solid rgba(147,197,253,0.18);">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span class="text-[#93c5fd] text-xs font-medium uppercase tracking-wider">Views</span>
+            </div>
+            <div class="text-2xl font-bold text-white">${formatNumber(totalViews)}</div>
+          </div>
+          <div class="rounded-lg p-4 fade-in fade-in-delay-1" style="background:rgba(252,172,209,0.07);border:1px solid rgba(252,172,209,0.18);">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fcacd1" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+              <span class="text-[#fcacd1] text-xs font-medium uppercase tracking-wider">Likes</span>
+            </div>
+            <div class="text-2xl font-bold text-white">${formatNumber(totalLikes)}</div>
+          </div>
+          <div class="rounded-lg p-4 fade-in fade-in-delay-2" style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.18);">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              <span class="text-[#c4b5fd] text-xs font-medium uppercase tracking-wider">Comments</span>
+            </div>
+            <div class="text-2xl font-bold text-white">${formatNumber(totalComments)}</div>
+          </div>
+          <div class="rounded-lg p-4 fade-in fade-in-delay-3" style="background:rgba(134,239,172,0.07);border:1px solid rgba(134,239,172,0.18);">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span class="text-[#86efac] text-xs font-medium uppercase tracking-wider">Shares</span>
+            </div>
+            <div class="text-2xl font-bold text-white">${formatNumber(totalShares)}</div>
+          </div>
+        `;
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('videos').innerHTML = data.videos.map((video, index) => `
+          <div class="video-card rounded-lg p-4 fade-in" style="animation-delay: ${index * 0.07}s; opacity: 0;" onclick="openModal(${video.id})">
+            <div class="flex gap-3">
+              <div class="w-20 h-28 rounded-md bg-zinc-900 overflow-hidden flex-shrink-0 relative group">
+                <img src="${video.thumbnail_url}" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span class="text-xs">View</span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="font-semibold text-sm text-[#fcacd1]">${video.author}</span>
+                  ${video.hook_type ? `<span class="hook-badge text-xs px-1.5 py-0.5 rounded-md">${video.hook_type}</span>` : ''}
+                </div>
+                <p class="text-zinc-500 text-xs mb-2.5 line-clamp-2 leading-relaxed">${video.description}</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="stat-badge text-xs px-2 py-0.5 rounded-md">${formatNumber(video.views)} views</span>
+                  <span class="stat-badge text-xs px-2 py-0.5 rounded-md">${formatNumber(video.likes)} likes</span>
+                  <span class="stat-badge text-xs px-2 py-0.5 rounded-md">${formatNumber(video.comments)} cmts</span>
+                </div>
+              </div>
+            </div>
+            ${video.ai_analysis ? `
+              <div class="mt-3 pt-3 border-t border-white/6">
+                <div class="text-xs text-zinc-600 mb-1 uppercase tracking-wider font-medium">AI Analysis</div>
+                <div class="text-xs text-zinc-400 line-clamp-2 leading-relaxed">${formatAnalysis(video.ai_analysis)}</div>
+              </div>
+            ` : `
+              <div class="mt-3 pt-3 border-t border-white/6">
+                <span class="text-xs text-zinc-600">Click to view details and analyze</span>
+              </div>
+            `}
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error('Error loading results:', err);
+        document.getElementById('loading').innerHTML = '<p class="text-red-400 text-sm">Failed to load results</p>';
+      }
+    }
+
+    async function analyzeVideoModal(videoId, button) {
+      button.disabled = true;
+      button.innerHTML = 'Analyzing video & comments...';
+      try {
+        const res = await fetch(`/api/analyze/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) {
+          let analysisHtml = `
+            <div class="border-t border-white/6 pt-5">
+              <h3 class="section-heading mb-3">Video Analysis</h3>
+              <div class="text-zinc-400 text-sm leading-relaxed">${formatAnalysis(data.analysis)}</div>
+            </div>
+          `;
+          if (data.commentAnalysis) {
+            analysisHtml += `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">Comment Insights</h3>
+                <div class="text-zinc-400 text-sm leading-relaxed">${formatCommentAnalysis(data.commentAnalysis)}</div>
+              </div>
+            `;
+          }
+          const modalAnalysisEl = document.getElementById('modalAnalysis');
+          if (modalAnalysisEl) modalAnalysisEl.parentElement.outerHTML = analysisHtml;
+          const video = videosData.find(v => v.id === videoId);
+          if (video) { video.ai_analysis = data.analysis; video.comment_analysis = JSON.stringify(data.commentAnalysis); video.hook_type = data.hook_type; }
+          const briefBtn = document.createElement('button');
+          briefBtn.className = 'generate-brief-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5';
+          briefBtn.innerHTML = 'Generate Brief';
+          briefBtn.onclick = () => openGenerateBriefModal(videoId);
+          button.replaceWith(briefBtn);
+          loadResults();
+        } else { button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+      } catch (err) { console.error('Error analyzing video:', err); button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+    }
+
+    async function analyzeVideo(videoId, button) {
+      button.disabled = true;
+      button.innerHTML = 'Analyzing...';
+      try {
+        const res = await fetch(`/api/analyze/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) {
+          const container = button.parentElement;
+          container.innerHTML = `
+            <div class="text-xs text-zinc-600 mb-1 uppercase tracking-wider font-medium">AI Analysis</div>
+            <div class="text-xs text-zinc-400">${formatAnalysis(data.analysis)}</div>
+          `;
+          const card = container.closest('.video-card');
+          const authorSpan = card.querySelector('.text-\\[\\#fcacd1\\]');
+          if (authorSpan && data.hook_type && data.hook_type !== 'N/A') {
+            const existingBadge = authorSpan.nextElementSibling;
+            if (!existingBadge || !existingBadge.classList.contains('hook-badge')) {
+              authorSpan.insertAdjacentHTML('afterend', `<span class="hook-badge text-xs px-1.5 py-0.5 rounded-md">${data.hook_type}</span>`);
+            }
+          }
+        } else { button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+      } catch (err) { console.error('Error analyzing video:', err); button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+    }
+
+    async function toggleBookmark(videoId, button) {
+      try {
+        const res = await fetch(`/api/bookmark/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) {
+          button.setAttribute('data-bookmarked', data.bookmarked ? 'true' : 'false');
+          button.innerHTML = data.bookmarked ? 'Bookmarked' : 'Bookmark';
+          const video = videosData.find(v => v.id === videoId);
+          if (video) video.bookmarked = data.bookmarked ? 1 : 0;
+        }
+      } catch (err) { console.error('Error toggling bookmark:', err); }
+    }
+
+    async function viewTranscript(videoId, button) {
+      const transcriptSection = document.getElementById('transcriptSection');
+      const transcriptContent = document.getElementById('transcriptContent');
+      if (button.dataset.loaded === 'true') { transcriptSection.classList.toggle('hidden'); return; }
+      button.disabled = true;
+      button.innerHTML = 'Fetching transcript...';
+      try {
+        const res = await fetch(`/api/transcript/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success && data.transcript) {
+          transcriptContent.textContent = data.transcript;
+          transcriptSection.classList.remove('hidden');
+          button.innerHTML = 'View Transcript';
+          button.dataset.loaded = 'true';
+          button.disabled = false;
+          const video = videosData.find(v => v.id === videoId);
+          if (video) video.transcript = data.transcript;
+        } else {
+          transcriptContent.innerHTML = '<span class="text-zinc-600">No transcript available for this video (no captions found)</span>';
+          transcriptSection.classList.remove('hidden');
+          button.innerHTML = 'No Transcript';
+          button.disabled = true;
+        }
+      } catch (err) { console.error('Error getting transcript:', err); button.innerHTML = 'Failed - Try Again'; button.disabled = false; }
+    }
+
+    document.getElementById('exportBtn').addEventListener('click', () => { window.location.href = `/api/export/${jobId}`; });
+
+    let projectsCache = [];
+    let selectedVideoIdForBrief = null;
+    window.selectedProjectId = null;
+
+    async function openGenerateBriefModal(videoId) {
+      selectedVideoIdForBrief = videoId;
+      try {
+        const res = await fetch('/api/projects');
+        projectsCache = await res.json();
+      } catch (err) { console.error('Error loading projects:', err); projectsCache = []; }
+
+      if (projectsCache.length === 0) {
+        document.getElementById('briefModalBody').innerHTML = `
+          <div class="text-center py-4">
+            <p class="text-zinc-500 text-sm mb-4">No projects found. Create a project first to generate briefs.</p>
+            <a href="/settings" class="inline-block px-5 py-2.5 rounded-md btn-primary text-sm font-semibold">Go to Settings</a>
+          </div>
+        `;
+      } else {
+        if (!window.selectedProjectId || !projectsCache.find(p => p.id === window.selectedProjectId)) {
+          window.selectedProjectId = projectsCache[0].id;
+        }
+        document.getElementById('briefModalBody').innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Select Project</label>
+              <select id="projectSelect" class="input-field w-full px-4 py-3 rounded-lg text-white text-sm">
+                ${projectsCache.map(p => `<option value="${p.id}" ${p.id === window.selectedProjectId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+            </div>
+            <p class="text-xs text-zinc-600">The brief will be generated using the selected project's brief template and brand bible.</p>
+            <div class="flex justify-end gap-3 pt-2">
+              <button onclick="closeBriefModal()" class="btn-ghost px-5 py-2.5 rounded-md text-sm font-medium">Cancel</button>
+              <button onclick="generateBrief()" id="generateBriefBtn" class="glow-button px-5 py-2.5 rounded-md text-sm font-semibold">Generate Brief</button>
+            </div>
+          </div>
+        `;
+        document.getElementById('projectSelect').addEventListener('change', function() {
+          window.selectedProjectId = parseInt(this.value);
+        });
+      }
+      document.getElementById('briefModal').classList.remove('hidden');
+    }
+
+    function closeBriefModal() {
+      document.getElementById('briefModal').classList.add('hidden');
+      selectedVideoIdForBrief = null;
+      const btn = document.getElementById('generateBriefBtn');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Generate Brief'; }
+    }
+
+    async function generateBrief() {
+      const projectId = window.selectedProjectId || document.getElementById('projectSelect').value;
+      const btn = document.getElementById('generateBriefBtn');
+      btn.disabled = true;
+      btn.innerHTML = 'Generating...';
+      try {
+        const res = await fetch('/api/generate-brief', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ video_id: selectedVideoIdForBrief, project_id: parseInt(projectId) })
+        });
+        const data = await res.json();
+        if (data.success && data.brief) { closeBriefModal(); closeModal(); window.location.href = '/briefs'; }
+        else { btn.disabled = false; btn.innerHTML = data.error || 'Failed - Try Again'; }
+      } catch (err) { console.error('Error generating brief:', err); btn.disabled = false; btn.innerHTML = 'Failed - Try Again'; }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadResults();
+  </script>
+</body>
+</html>
