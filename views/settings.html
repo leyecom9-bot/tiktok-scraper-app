@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - TikTok Trend Scraper</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: #09090b;
+      background-image: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(252,172,209,0.12) 0%, transparent 65%);
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    .nav-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .nav-item {
+      padding: 7px 18px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #71717a;
+      text-decoration: none;
+      transition: background 0.25s ease, color 0.25s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      background: rgba(252,172,209,0.14);
+      color: #fcacd1;
+    }
+    .nav-item:not(.active):hover {
+      color: #a1a1aa;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .card, .glass-card {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    .project-card {
+      background: rgba(252,172,209,0.03);
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+      transition: all 0.2s ease;
+    }
+    .project-card:hover {
+      background: rgba(252,172,209,0.06);
+      border-color: rgba(252,172,209,0.18);
+    }
+
+    .btn-primary, .glow-button {
+      background: linear-gradient(135deg, #fcacd1 0%, #c084fc 100%);
+      color: #09090b;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(252,172,209,0.25);
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-primary:hover, .glow-button:hover {
+      box-shadow: 0 0 32px rgba(252,172,209,0.45);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active, .glow-button:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #a1a1aa;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.09);
+      color: #e4e4e7;
+    }
+
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: rgba(252,172,209,0.45);
+      box-shadow: 0 0 0 3px rgba(252,172,209,0.10);
+      outline: none;
+    }
+    .input-field::placeholder { color: rgba(252,172,209,0.28); }
+
+    .modal-overlay {
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-animate { animation: modalIn 0.2s ease forwards; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <div class="max-w-4xl mx-auto px-6 py-10">
+
+    <!-- Navigation -->
+    <nav class="flex justify-center mb-10">
+      <div class="nav-toggle">
+        <a href="/" class="nav-item">Home</a>
+        <a href="/briefs" class="nav-item">Briefs</a>
+        <span class="nav-item active">Settings</span>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: rgba(147,197,253,0.10); border: 1px solid rgba(147,197,253,0.15);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="3" stroke="#93c5fd" stroke-width="1.8"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="#93c5fd" stroke-width="1.8"/>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">Project Settings</h1>
+      </div>
+      <p class="text-zinc-500 text-sm mt-1">Manage your client projects, brief templates, and brand guidelines</p>
+    </div>
+
+    <!-- Create New Project -->
+    <div class="card rounded-lg p-6 mb-5">
+      <h2 class="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">Create New Project</h2>
+      <div class="flex gap-3">
+        <input
+          type="text"
+          id="newProjectName"
+          placeholder="Project name (e.g., Client ABC)"
+          class="input-field flex-1 px-4 py-3 rounded-lg text-white text-sm"
+        >
+        <button onclick="createProject()" class="glow-button px-5 py-3 rounded-md text-sm font-semibold whitespace-nowrap">
+          Create Project
+        </button>
+      </div>
+    </div>
+
+    <!-- Projects List -->
+    <div class="card rounded-lg p-6">
+      <h2 class="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-5">Your Projects</h2>
+      <div id="projectsList" class="space-y-3">
+        <p class="text-zinc-600 text-sm">Loading projects...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Delete Project Confirmation Modal -->
+  <div id="deleteProjectModal" class="fixed inset-0 z-[60] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeDeleteProjectModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="modal-content modal-animate rounded-xl max-w-sm w-full p-6 text-center">
+        <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+        <h3 class="text-base font-semibold mb-1">Delete Project?</h3>
+        <p class="text-zinc-500 text-sm mb-5">This will also delete all briefs for this project.</p>
+        <div class="flex gap-3 justify-center">
+          <button onclick="closeDeleteProjectModal()" class="btn-ghost px-5 py-2.5 rounded-md text-sm font-medium">Cancel</button>
+          <button onclick="confirmDeleteProject()" class="px-5 py-2.5 rounded-md text-sm font-semibold bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 transition-colors">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Project Modal -->
+  <div id="editModal" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="modal-content modal-animate rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-7">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-lg font-semibold">Edit Project</h2>
+        <button onclick="closeEditModal()" class="text-zinc-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="editModalBody" class="space-y-5"></div>
+    </div>
+  </div>
+
+  <script>
+    let projects = [];
+    let projectToDelete = null;
+
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/projects');
+        projects = await res.json();
+        renderProjects();
+      } catch (err) {
+        console.error('Error loading projects:', err);
+        document.getElementById('projectsList').innerHTML = '<p class="text-red-400 text-sm">Failed to load projects</p>';
+      }
+    }
+
+    function renderProjects() {
+      const container = document.getElementById('projectsList');
+
+      if (projects.length === 0) {
+        container.innerHTML = '<p class="text-zinc-600 text-sm">No projects yet. Create your first project above.</p>';
+        return;
+      }
+
+      container.innerHTML = projects.map(project => `
+        <div class="project-card rounded-lg p-4">
+          <div class="flex justify-between items-center">
+            <div class="flex-1 min-w-0">
+              <h3 class="text-base font-semibold text-[#fcacd1] truncate">${escapeHtml(project.name)}</h3>
+              <div class="flex gap-3 mt-1 text-xs text-zinc-600">
+                <span class="${project.brief_template ? 'text-zinc-400' : ''}">${project.brief_template ? 'Brief template set' : 'No brief template'}</span>
+                <span>·</span>
+                <span class="${project.brand_bible ? 'text-zinc-400' : ''}">${project.brand_bible ? 'Brand bible set' : 'No brand bible'}</span>
+              </div>
+            </div>
+            <div class="flex gap-2 ml-4">
+              <button
+                onclick="openEditModal(${project.id})"
+                class="btn-ghost px-3.5 py-1.5 rounded-md text-xs font-medium"
+              >
+                Edit
+              </button>
+              <button
+                onclick="deleteProject(${project.id})"
+                class="px-3.5 py-1.5 rounded-md bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 transition-colors text-xs font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function createProject() {
+      const nameInput = document.getElementById('newProjectName');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        nameInput.style.borderColor = 'rgba(248,113,113,0.5)';
+        nameInput.placeholder = 'Please enter a project name';
+        setTimeout(() => {
+          nameInput.style.borderColor = '';
+          nameInput.placeholder = 'Project name (e.g., Client ABC)';
+        }, 2000);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+        if (res.ok) { nameInput.value = ''; loadProjects(); }
+      } catch (err) { console.error('Error creating project:', err); }
+    }
+
+    function deleteProject(projectId) {
+      projectToDelete = projectId;
+      document.getElementById('deleteProjectModal').classList.remove('hidden');
+    }
+
+    function closeDeleteProjectModal() {
+      document.getElementById('deleteProjectModal').classList.add('hidden');
+      projectToDelete = null;
+    }
+
+    async function confirmDeleteProject() {
+      if (!projectToDelete) return;
+      try {
+        const res = await fetch(`/api/projects/${projectToDelete}`, { method: 'DELETE' });
+        if (res.ok) { closeDeleteProjectModal(); loadProjects(); }
+      } catch (err) { console.error('Error deleting project:', err); }
+    }
+
+    function openEditModal(projectId) {
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+
+      document.getElementById('editModalBody').innerHTML = `
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Project Name</label>
+          <input
+            type="text"
+            id="editProjectName"
+            value="${escapeHtml(project.name)}"
+            class="input-field w-full px-4 py-3 rounded-lg text-white text-sm"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Brief Template</label>
+          <p class="text-xs text-zinc-600 mb-2">This template will be used when generating briefs for this project. Include section headers and any specific format you want.</p>
+          <textarea
+            id="editBriefTemplate"
+            rows="8"
+            placeholder="e.g.,
+Campaign Name:
+Objective:
+Target Audience:
+Key Message:
+Visual Style:
+Call to Action:
+Deliverables:
+Timeline:"
+            class="input-field w-full px-4 py-3 rounded-lg text-white text-sm resize-y"
+          >${escapeHtml(project.brief_template || '')}</textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">Brand Bible</label>
+          <p class="text-xs text-zinc-600 mb-2">Add brand guidelines, tone of voice, target audience info, and any other context about the brand.</p>
+          <textarea
+            id="editBrandBible"
+            rows="8"
+            placeholder="e.g.,
+Brand Name: ACME Corp
+Industry: Tech/SaaS
+Target Audience: Small business owners, 25-45
+Tone of Voice: Professional but approachable
+Brand Values: Innovation, Simplicity, Trust
+Colors: Blue (#0066FF), White
+Key Differentiators: Easy to use, affordable pricing"
+            class="input-field w-full px-4 py-3 rounded-lg text-white text-sm resize-y"
+          >${escapeHtml(project.brand_bible || '')}</textarea>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button onclick="closeEditModal()" class="btn-ghost px-5 py-2.5 rounded-md text-sm font-medium">Cancel</button>
+          <button onclick="saveProject(${project.id})" class="glow-button px-5 py-2.5 rounded-md text-sm font-semibold">Save Changes</button>
+        </div>
+      `;
+
+      document.getElementById('editModal').classList.remove('hidden');
+      document.getElementById('editModal').classList.add('flex');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+      document.getElementById('editModal').classList.remove('flex');
+    }
+
+    async function saveProject(projectId) {
+      const nameInput = document.getElementById('editProjectName');
+      const name = nameInput.value.trim();
+      const brief_template = document.getElementById('editBriefTemplate').value;
+      const brand_bible = document.getElementById('editBrandBible').value;
+
+      if (!name) {
+        nameInput.style.borderColor = 'rgba(248,113,113,0.5)';
+        setTimeout(() => { nameInput.style.borderColor = ''; }, 2000);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/projects/${projectId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, brief_template, brand_bible })
+        });
+        if (res.ok) { closeEditModal(); loadProjects(); }
+      } catch (err) { console.error('Error saving project:', err); }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    loadProjects();
+  </script>
+</body>
+</html>
