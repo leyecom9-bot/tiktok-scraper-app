@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Trend Scraper</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: #09090b;
+      background-image:
+        radial-gradient(ellipse 90% 55% at 50% -5%, rgba(252,172,209,0.12) 0%, transparent 65%),
+        radial-gradient(rgba(252,172,209,0.07) 1px, transparent 1px);
+      background-size: auto, 28px 28px;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    /* ── Navigation toggle ── */
+    .nav-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 2px;
+    }
+    .nav-item {
+      padding: 7px 18px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #71717a;
+      text-decoration: none;
+      transition: background 0.25s ease, color 0.25s ease;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      background: rgba(252,172,209,0.14);
+      color: #fcacd1;
+    }
+    .nav-item:not(.active):hover {
+      color: #a1a1aa;
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+    .glass-card {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary, .glow-button {
+      background: linear-gradient(135deg, #fcacd1 0%, #c084fc 100%);
+      color: #09090b;
+      font-weight: 600;
+      box-shadow: 0 0 20px rgba(252,172,209,0.25);
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-primary:hover, .glow-button:hover {
+      box-shadow: 0 0 32px rgba(252,172,209,0.45);
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+    .btn-primary:active, .glow-button:active {
+      transform: translateY(0);
+    }
+    .glow-button:disabled {
+      background: rgba(255,255,255,0.08);
+      color: #52525b;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ghost, .back-btn, .bookmark-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #a1a1aa;
+      transition: all 0.2s ease;
+    }
+    .btn-ghost:hover, .back-btn:hover, .bookmark-btn:hover {
+      background: rgba(255,255,255,0.09);
+      color: #e4e4e7;
+    }
+
+    .bookmark-btn[data-bookmarked="true"] {
+      background: rgba(252,172,209,0.12);
+      border-color: rgba(252,172,209,0.25);
+      color: #fcacd1;
+    }
+
+    /* Secondary action buttons — ghost tier */
+    .analyze-btn, .export-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: #d4d4d8;
+      transition: all 0.2s ease;
+    }
+    .analyze-btn:hover, .export-btn:hover {
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+    }
+
+    .transcript-btn {
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.22);
+      color: #c4b5fd;
+      transition: all 0.2s ease;
+    }
+    .transcript-btn:hover {
+      background: rgba(167,139,250,0.20);
+      color: #ddd6fe;
+    }
+
+    .generate-brief-btn {
+      background: rgba(147,197,253,0.12);
+      border: 1px solid rgba(147,197,253,0.22);
+      color: #93c5fd;
+      transition: all 0.2s ease;
+    }
+    .generate-brief-btn:hover {
+      background: rgba(147,197,253,0.20);
+      color: #bae6fd;
+    }
+
+    .analyze-btn:disabled, .transcript-btn:disabled, .generate-brief-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Section headings ── */
+    .section-heading {
+      font-size: 12px;
+      font-weight: 700;
+      color: #c4b5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Inputs ── */
+    .input-field {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #fff;
+      transition: all 0.2s ease;
+    }
+    .input-field:focus {
+      border-color: rgba(252,172,209,0.45);
+      box-shadow: 0 0 0 3px rgba(252,172,209,0.10);
+      outline: none;
+    }
+    .input-field::placeholder { color: rgba(252,172,209,0.28); }
+    .input-field option { background: #111113; }
+
+    /* ── Badges ── */
+    .hook-badge {
+      background: rgba(167,139,250,0.13);
+      border: 1px solid rgba(167,139,250,0.22);
+      color: #c4b5fd;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .stat-badge {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: #a1a1aa;
+    }
+
+    /* ── Analysis labels ── */
+    .analysis-label {
+      color: #fcacd1;
+      font-weight: 600;
+    }
+
+    /* ── History rows ── */
+    .history-item {
+      border-radius: 8px;
+      transition: background 0.15s ease;
+    }
+    .history-item:hover {
+      background: rgba(252,172,209,0.06);
+    }
+
+    /* ── Bookmark cards ── */
+    .bookmark-card {
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s ease;
+    }
+    .bookmark-card:hover {
+      background: rgba(252,172,209,0.06);
+    }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 24px; height: 24px;
+      border: 2px solid rgba(252,172,209,0.2);
+      border-top-color: #fcacd1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    /* ── Modals ── */
+    .modal-overlay {
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: #111113;
+      border: 1px solid rgba(252,172,209,0.12);
+      box-shadow: 0 0 0 1px rgba(252,172,209,0.07), 0 4px 28px rgba(0,0,0,0.5);
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.97) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-animate { animation: modalIn 0.2s ease forwards; }
+
+    /* ── Misc ── */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .loading { animation: pulse 1.4s infinite; }
+
+    select option { background: #18181b; }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <div class="max-w-4xl mx-auto px-6 py-10">
+
+    <!-- Navigation -->
+    <nav class="flex justify-center mb-10">
+      <div class="nav-toggle">
+        <span class="nav-item active">Home</span>
+        <a href="/briefs" class="nav-item">Briefs</a>
+        <a href="/settings" class="nav-item">Settings</a>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, rgba(252,172,209,0.2) 0%, rgba(192,132,252,0.2) 100%); border: 1px solid rgba(252,172,209,0.2);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#fcacd1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight">TikTok Trend Scraper</h1>
+      </div>
+      <p class="text-zinc-500 text-sm">Find trending videos, analyze hooks, and steal what works</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card rounded-lg p-6 mb-6">
+      <form id="scrapeForm" class="space-y-5">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Search Keyword</label>
+          <input
+            type="text"
+            id="keyword"
+            placeholder="e.g., dropshipping, skincare routine, morning coffee"
+            class="input-field w-full px-4 py-3 rounded-lg text-white placeholder-zinc-600 text-sm"
+            required
+          >
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Date Range</label>
+            <select id="dateRange" class="input-field w-full px-4 py-3 rounded-lg text-white text-sm">
+              <option value="" selected>All Time</option>
+              <option value="1">Last 24 hours</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Number of Results</label>
+            <select id="maxResults" class="input-field w-full px-4 py-3 rounded-lg text-white text-sm">
+              <option value="10">10 videos</option>
+              <option value="20" selected>20 videos</option>
+              <option value="50">50 videos</option>
+              <option value="100">100 videos</option>
+            </select>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          id="submitBtn"
+          class="glow-button w-full py-3.5 rounded-md font-semibold text-sm tracking-wide"
+        >
+          Find Trending Videos
+        </button>
+      </form>
+    </div>
+
+    <!-- Status Message -->
+    <div id="status" class="hidden card rounded-xl p-5 mb-6 text-center">
+      <div class="flex items-center justify-center gap-3">
+        <div class="spinner loading"></div>
+        <p id="statusText" class="text-zinc-400 text-sm">Starting scrape...</p>
+      </div>
+    </div>
+
+    <!-- Bookmarks -->
+    <div class="card rounded-lg p-5 mb-4">
+      <h2 class="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">Bookmarks</h2>
+      <div id="bookmarks" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <p class="text-zinc-600 text-sm col-span-2">No bookmarked videos yet.</p>
+      </div>
+    </div>
+
+    <!-- Recent Searches -->
+    <div class="card rounded-lg p-5">
+      <h2 class="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-4">Recent Searches</h2>
+      <div id="history" class="space-y-1">
+        <p class="text-zinc-600 text-sm">No searches yet. Start by entering a keyword above.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Video Detail Modal -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
+    <div class="absolute inset-4 md:inset-12 lg:inset-16 flex items-center justify-center">
+      <div id="modalContent" class="modal-content modal-animate rounded-xl p-7 max-w-4xl w-full max-h-full overflow-y-auto relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Search Modal -->
+  <div id="deleteSearchModal" class="fixed inset-0 z-[60] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeDeleteSearchModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="modal-content modal-animate rounded-xl max-w-sm w-full p-6 text-center">
+        <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+        <h3 class="text-base font-semibold mb-1">Delete Search?</h3>
+        <p class="text-zinc-500 text-sm mb-5">This will also delete all videos from this search.</p>
+        <div class="flex gap-3 justify-center">
+          <button onclick="closeDeleteSearchModal()" class="btn-ghost px-5 py-2.5 rounded-md text-sm font-medium">Cancel</button>
+          <button onclick="confirmDeleteSearch()" class="px-5 py-2.5 rounded-md text-sm font-semibold bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 transition-colors">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Brief Modal -->
+  <div id="briefModal" class="fixed inset-0 z-[60] hidden">
+    <div class="modal-overlay absolute inset-0" onclick="closeBriefModal()"></div>
+    <div class="absolute inset-4 md:inset-20 flex items-center justify-center">
+      <div class="modal-content modal-animate rounded-xl p-7 max-w-lg w-full relative">
+        <button onclick="closeBriefModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+        <h2 class="text-lg font-semibold mb-5">Generate Creative Brief</h2>
+        <div id="briefModalBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('scrapeForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const history = document.getElementById('history');
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/jobs');
+        const jobs = await res.json();
+
+        if (jobs.length === 0) {
+          history.innerHTML = '<p class="text-zinc-600 text-sm">No searches yet. Start by entering a keyword above.</p>';
+          return;
+        }
+
+        history.innerHTML = jobs.map(job => `
+          <div class="history-item flex items-center justify-between p-3">
+            <a href="/results/${job.id}" class="flex-1 flex items-center justify-between">
+              <div>
+                <span class="font-medium text-sm">${job.keyword}</span>
+                <span class="text-zinc-600 text-xs ml-2">${job.date_range ? 'Last ' + job.date_range + ' days' : 'All Time'}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs px-2 py-0.5 rounded-full ${
+                  job.status === 'complete' ? 'bg-violet-500/10 text-[#c4b5fd] border border-violet-400/20' :
+                  job.status === 'error' ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                  'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                }">${job.status}</span>
+                <span class="text-zinc-600 text-xs">${new Date(job.created_at).toLocaleDateString()}</span>
+              </div>
+            </a>
+            <button
+              onclick="deleteSearch(${job.id})"
+              class="ml-3 p-1.5 rounded-md hover:bg-red-500/15 text-zinc-600 hover:text-red-400 transition-colors"
+              title="Delete search"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load history:', err);
+      }
+    }
+
+    loadHistory();
+
+    let bookmarksData = [];
+    let projectsCache = [];
+    let selectedVideoIdForBrief = null;
+    let searchToDelete = null;
+
+    function deleteSearch(jobId) {
+      searchToDelete = jobId;
+      document.getElementById('deleteSearchModal').classList.remove('hidden');
+    }
+
+    function closeDeleteSearchModal() {
+      document.getElementById('deleteSearchModal').classList.add('hidden');
+      searchToDelete = null;
+    }
+
+    async function confirmDeleteSearch() {
+      if (!searchToDelete) return;
+      try {
+        const res = await fetch(`/api/jobs/${searchToDelete}`, { method: 'DELETE' });
+        if (res.ok) { closeDeleteSearchModal(); loadHistory(); }
+      } catch (err) { console.error('Error deleting search:', err); }
+    }
+
+    async function loadBookmarks() {
+      try {
+        const res = await fetch('/api/bookmarks');
+        const videos = await res.json();
+        bookmarksData = videos;
+        const bookmarksDiv = document.getElementById('bookmarks');
+
+        if (videos.length === 0) {
+          bookmarksDiv.innerHTML = '<p class="text-zinc-600 text-sm col-span-2">No bookmarked videos yet.</p>';
+          return;
+        }
+
+        bookmarksDiv.innerHTML = videos.map(video => `
+          <div onclick="openModal(${video.id})" class="bookmark-card flex items-center gap-3 p-3">
+            <div class="w-10 h-14 rounded-md bg-zinc-900 overflow-hidden flex-shrink-0">
+              <img src="${video.thumbnail_url}" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="font-medium text-sm text-[#fcacd1]">${video.author}</span>
+              <p class="text-zinc-500 text-xs truncate mt-0.5">${video.description}</p>
+              <span class="text-zinc-600 text-xs">${formatNumber(video.views)} views</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) { console.error('Failed to load bookmarks:', err); }
+    }
+
+    function formatNumber(num) {
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+      return num.toString();
+    }
+
+    function formatAnalysis(text) {
+      if (!text) return '';
+      return text
+        .replace(/Visual Hook:/g, '<span class="analysis-label">Visual Hook:</span>')
+        .replace(/Undeniable Proof:/g, '<br><br><span class="analysis-label">Undeniable Proof:</span>')
+        .replace(/Theme:/g, '<br><br><span class="analysis-label">Theme:</span>')
+        .replace(/Funnel Stage:/g, '<br><br><span class="analysis-label">Funnel Stage:</span>');
+    }
+
+    function formatCommentAnalysis(jsonStr) {
+      if (!jsonStr) return '';
+      try {
+        const data = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+        return `
+          <div class="mb-3">
+            <span class="analysis-label">Common Questions:</span>
+            <p class="mt-1 text-zinc-400 text-sm">${data.commonQuestions || 'No questions identified'}</p>
+          </div>
+          <div>
+            <span class="analysis-label">Key Insights:</span>
+            <p class="mt-1 text-zinc-400 text-sm">${data.keyInsights || 'No insights available'}</p>
+          </div>
+        `;
+      } catch (e) {
+        return '<span class="text-zinc-600 text-sm">Comment analysis unavailable</span>';
+      }
+    }
+
+    function openModal(videoId) {
+      const video = bookmarksData.find(v => v.id === videoId);
+      if (!video) return;
+
+      const tiktokUrl = video.video_url || `https://www.tiktok.com/@${(video.author || '').replace('@', '')}/video/${video.video_id}`;
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="flex flex-col md:flex-row gap-7">
+          <div class="flex-shrink-0">
+            <a href="${tiktokUrl}" target="_blank" rel="noopener noreferrer" class="block">
+              <div class="w-44 h-64 rounded-lg bg-zinc-900 overflow-hidden relative group mx-auto">
+                <img src="${video.thumbnail_url}" alt="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span class="text-xs font-medium bg-white/20 px-3 py-1.5 rounded-md">Open TikTok</span>
+                </div>
+              </div>
+            </a>
+            <a href="${tiktokUrl}" target="_blank" rel="noopener noreferrer" class="block mt-3 text-center text-[#fcacd1] hover:underline text-xs">
+              View on TikTok →
+            </a>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-lg font-bold text-[#fcacd1]">${video.author}</span>
+              ${video.hook_type ? `<span class="hook-badge text-xs px-2 py-0.5 rounded-md">${video.hook_type}</span>` : ''}
+            </div>
+
+            <p class="text-zinc-400 text-sm mb-5 leading-relaxed">${video.description}</p>
+
+            <div class="grid grid-cols-2 gap-2 mb-5">
+              <div class="rounded-md p-2.5" style="background:rgba(147,197,253,0.07);border:1px solid rgba(147,197,253,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <span class="text-[#93c5fd] text-xs">Views</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.views)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(252,172,209,0.07);border:1px solid rgba(252,172,209,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fcacd1" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+                  <span class="text-[#fcacd1] text-xs">Likes</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.likes)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span class="text-[#c4b5fd] text-xs">Comments</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.comments)}</div>
+              </div>
+              <div class="rounded-md p-2.5" style="background:rgba(134,239,172,0.07);border:1px solid rgba(134,239,172,0.18);">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  <span class="text-[#86efac] text-xs">Shares</span>
+                </div>
+                <div class="font-bold text-sm text-white">${formatNumber(video.shares)}</div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mb-5">
+              <button
+                onclick="toggleBookmark(${video.id}, this)"
+                class="bookmark-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                data-bookmarked="${video.bookmarked ? 'true' : 'false'}"
+              >
+                ${video.bookmarked ? 'Bookmarked' : 'Bookmark'}
+              </button>
+              <button
+                onclick="viewTranscript(${video.id}, this)"
+                class="transcript-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                ${video.transcript ? 'data-loaded="true"' : ''}
+              >
+                ${video.transcript ? 'View Transcript' : 'Get Transcript'}
+              </button>
+              ${!video.ai_analysis ? `
+                <button
+                  onclick="analyzeVideoModal(${video.id}, this)"
+                  class="analyze-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                >
+                  Analyze Now
+                </button>
+              ` : `
+                <button
+                  onclick="openGenerateBriefModal(${video.id})"
+                  class="generate-brief-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5"
+                >
+                  Generate Brief
+                </button>
+              `}
+            </div>
+
+            <div id="transcriptSection" class="border-t border-white/6 pt-5 ${video.transcript ? '' : 'hidden'}">
+              <h3 class="section-heading mb-3">Transcript</h3>
+              <div id="transcriptContent" class="text-zinc-400 text-sm leading-relaxed p-4 rounded-lg max-h-40 overflow-y-auto" style="background:rgba(252,172,209,0.05);border:1px solid rgba(252,172,209,0.10);">
+                ${video.transcript || '<span class="text-zinc-600">Loading...</span>'}
+              </div>
+            </div>
+
+            ${video.ai_analysis ? `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">Video Analysis</h3>
+                <div id="modalAnalysis" class="text-zinc-400 text-sm leading-relaxed">
+                  ${formatAnalysis(video.ai_analysis)}
+                </div>
+              </div>
+              ${video.comment_analysis ? `
+                <div class="border-t border-white/6 pt-5 mt-5">
+                  <h3 class="section-heading mb-3">Comment Insights</h3>
+                  <div class="text-zinc-400 text-sm leading-relaxed">${formatCommentAnalysis(video.comment_analysis)}</div>
+                </div>
+              ` : ''}
+            ` : `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">AI Analysis</h3>
+                <div id="modalAnalysis" class="text-zinc-600 text-sm">Click "Analyze Now" to get AI insights</div>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    async function toggleBookmark(videoId, button) {
+      try {
+        const res = await fetch(`/api/bookmark/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) {
+          button.setAttribute('data-bookmarked', data.bookmarked ? 'true' : 'false');
+          button.innerHTML = data.bookmarked ? 'Bookmarked' : 'Bookmark';
+          const video = bookmarksData.find(v => v.id === videoId);
+          if (video) video.bookmarked = data.bookmarked ? 1 : 0;
+          if (!data.bookmarked) { closeModal(); loadBookmarks(); }
+        }
+      } catch (err) { console.error('Error toggling bookmark:', err); }
+    }
+
+    async function analyzeVideoModal(videoId, button) {
+      button.disabled = true;
+      button.innerHTML = 'Analyzing video & comments...';
+      try {
+        const res = await fetch(`/api/analyze/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success) {
+          let analysisHtml = `
+            <div class="border-t border-white/6 pt-5">
+              <h3 class="section-heading mb-3">Video Analysis</h3>
+              <div class="text-zinc-400 text-sm leading-relaxed">${formatAnalysis(data.analysis)}</div>
+            </div>
+          `;
+          if (data.commentAnalysis) {
+            analysisHtml += `
+              <div class="border-t border-white/6 pt-5 mt-5">
+                <h3 class="section-heading mb-3">Comment Insights</h3>
+                <div class="text-zinc-400 text-sm leading-relaxed">${formatCommentAnalysis(data.commentAnalysis)}</div>
+              </div>
+            `;
+          }
+          const modalAnalysisEl = document.getElementById('modalAnalysis');
+          if (modalAnalysisEl) modalAnalysisEl.parentElement.outerHTML = analysisHtml;
+          const video = bookmarksData.find(v => v.id === videoId);
+          if (video) { video.ai_analysis = data.analysis; video.comment_analysis = JSON.stringify(data.commentAnalysis); video.hook_type = data.hook_type; }
+          const briefBtn = document.createElement('button');
+          briefBtn.className = 'generate-brief-btn px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5';
+          briefBtn.innerHTML = 'Generate Brief';
+          briefBtn.onclick = () => openGenerateBriefModal(videoId);
+          button.replaceWith(briefBtn);
+        } else { button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+      } catch (err) { console.error('Error analyzing video:', err); button.disabled = false; button.innerHTML = 'Failed - Try Again'; }
+    }
+
+    async function viewTranscript(videoId, button) {
+      const transcriptSection = document.getElementById('transcriptSection');
+      const transcriptContent = document.getElementById('transcriptContent');
+      if (button.dataset.loaded === 'true') { transcriptSection.classList.toggle('hidden'); return; }
+      button.disabled = true;
+      button.innerHTML = 'Fetching transcript...';
+      try {
+        const res = await fetch(`/api/transcript/${videoId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        if (data.success && data.transcript) {
+          transcriptContent.textContent = data.transcript;
+          transcriptSection.classList.remove('hidden');
+          button.innerHTML = 'View Transcript';
+          button.dataset.loaded = 'true';
+          button.disabled = false;
+          const video = bookmarksData.find(v => v.id === videoId);
+          if (video) video.transcript = data.transcript;
+        } else {
+          transcriptContent.innerHTML = '<span class="text-zinc-600">No transcript available for this video (no captions found)</span>';
+          transcriptSection.classList.remove('hidden');
+          button.innerHTML = 'No Transcript';
+          button.disabled = true;
+        }
+      } catch (err) { console.error('Error getting transcript:', err); button.innerHTML = 'Failed - Try Again'; button.disabled = false; }
+    }
+
+    loadBookmarks();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const keyword = document.getElementById('keyword').value;
+      const dateRange = document.getElementById('dateRange').value;
+      const maxResults = document.getElementById('maxResults').value;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Starting...';
+      status.classList.remove('hidden');
+      statusText.textContent = 'Starting scrape job...';
+
+      try {
+        const res = await fetch('/api/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, dateRange, maxResults: parseInt(maxResults) })
+        });
+        const data = await res.json();
+        if (data.jobId) {
+          statusText.textContent = 'Scraping TikTok for trending videos...';
+          const pollInterval = setInterval(async () => {
+            const jobRes = await fetch(`/api/job/${data.jobId}`);
+            const jobData = await jobRes.json();
+            if (jobData.job.status === 'analyzing') statusText.textContent = 'Analyzing videos with AI...';
+            if (jobData.job.status === 'complete') { clearInterval(pollInterval); window.location.href = `/results/${data.jobId}`; }
+            if (jobData.job.status === 'error') {
+              clearInterval(pollInterval);
+              statusText.textContent = 'Error occurred. Please try again.';
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Find Trending Videos';
+            }
+          }, 1000);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        statusText.textContent = 'Error occurred. Please try again.';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Find Trending Videos';
+      }
+    });
+
+    window.selectedProjectId = null;
+
+    async function openGenerateBriefModal(videoId) {
+      selectedVideoIdForBrief = videoId;
+      try {
+        const res = await fetch('/api/projects');
+        projectsCache = await res.json();
+      } catch (err) { console.error('Error loading projects:', err); projectsCache = []; }
+
+      if (projectsCache.length === 0) {
+        document.getElementById('briefModalBody').innerHTML = `
+          <div class="text-center py-4">
+            <p class="text-zinc-500 text-sm mb-4">No projects found. Create a project first to generate briefs.</p>
+            <a href="/settings" class="inline-block px-5 py-2.5 rounded-md btn-primary text-sm font-semibold">Go to Settings</a>
+          </div>
+        `;
+      } else {
+        if (!window.selectedProjectId || !projectsCache.find(p => p.id === window.selectedProjectId)) {
+          window.selectedProjectId = projectsCache[0].id;
+        }
+        document.getElementById('briefModalBody').innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Select Project</label>
+              <select id="projectSelect" class="input-field w-full px-4 py-3 rounded-lg text-white text-sm">
+                ${projectsCache.map(p => `<option value="${p.id}" ${p.id === window.selectedProjectId ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
+              </select>
+            </div>
+            <p class="text-xs text-zinc-600">The brief will be generated using the selected project's brief template and brand bible.</p>
+            <div class="flex justify-end gap-3 pt-2">
+              <button onclick="closeBriefModal()" class="btn-ghost px-5 py-2.5 rounded-md text-sm font-medium">Cancel</button>
+              <button onclick="generateBrief()" id="generateBriefBtn" class="glow-button px-5 py-2.5 rounded-md text-sm font-semibold">Generate Brief</button>
+            </div>
+          </div>
+        `;
+        document.getElementById('projectSelect').addEventListener('change', function() {
+          window.selectedProjectId = parseInt(this.value);
+        });
+      }
+      document.getElementById('briefModal').classList.remove('hidden');
+    }
+
+    function closeBriefModal() {
+      document.getElementById('briefModal').classList.add('hidden');
+      selectedVideoIdForBrief = null;
+      const btn = document.getElementById('generateBriefBtn');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Generate Brief'; }
+    }
+
+    async function generateBrief() {
+      const projectId = window.selectedProjectId || document.getElementById('projectSelect').value;
+      const btn = document.getElementById('generateBriefBtn');
+      btn.disabled = true;
+      btn.innerHTML = 'Generating...';
+      try {
+        const res = await fetch('/api/generate-brief', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ video_id: selectedVideoIdForBrief, project_id: parseInt(projectId) })
+        });
+        const data = await res.json();
+        if (data.success && data.brief) { closeBriefModal(); closeModal(); window.location.href = '/briefs'; }
+        else { btn.disabled = false; btn.innerHTML = data.error || 'Failed - Try Again'; }
+      } catch (err) { console.error('Error generating brief:', err); btn.disabled = false; btn.innerHTML = 'Failed - Try Again'; }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
